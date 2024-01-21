@@ -5,8 +5,8 @@ from ultralytics import YOLO
 
 
 def load_models():
-    model_person = YOLO("models/yolov8n.pt")
-    model_PPE = YOLO("models/best.pt")
+    model_person = YOLO("weights_and_cfg/yolov8n.pt")
+    model_PPE = YOLO("weights_and_cfg/best.pt")
 
     return model_person, model_PPE
 
@@ -23,28 +23,34 @@ def processing(cap, model_person, model_PPE,fourcc):
             break
         
         #try to find a person
-        res = model_person.track(frame, persist=False,  verbose = False, conf = 0.7, classes = 0, tracker="models/bytetrack_custom.yaml")
-        boxes = res[0].boxes.xywh.cpu()
+        res = model_person.track(frame, persist=False,  verbose = False, conf = 0.7, classes = 0, tracker="weights_and_cfg/bytetrack_custom.yaml")[0]
+        boxes = res.boxes.xywh.cpu()
         
         # we can tracking a person
-        if res[0].boxes.id:     
-            track_ids = res[0].boxes.id.int().cpu().tolist()
+        if res.boxes.id:     
+            track_ids = res.boxes.id.int().cpu().tolist()
             print("TRACK ID",track_ids)
             tracking = True
         else: tracking = False
 
-        annotated_frame = res[0].plot()
+        annotated_frame = res.plot()
 
         #if a person is being tracked 
         if tracking:
             if find:
                 #we are recording this moment
                 name+=1
-                out = cv2.VideoWriter(f"detect/{str(name)}.avi", fourcc, 10.0, (1920,  1080))
+                out = cv2.VideoWriter(f"detection_video/{str(name)}.avi", fourcc, 10.0, (1920,  1080))
                 find = False
 
             #we use a model taken from Roboflow to detect personal protective equipment
             results = model_PPE.predict(source =frame_copy, conf = 0.5, classes = [0,1,2,3,4,7])[0]
+            names = model_PPE.names #all classes of model
+            objects_found = results.boxes.cls  #list numbers of classes
+            for i in objects_found:
+                print(names[int(i)])
+
+
             annotated_frame = results.plot()
             out.write(annotated_frame)
             cv2.waitKey(1)
