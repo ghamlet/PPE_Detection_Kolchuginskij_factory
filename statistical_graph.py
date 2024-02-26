@@ -30,7 +30,7 @@ def write_excel(cur_ppe_person: list):
     #write new information into the table
     hardhat, no_hardhat, mask, no_mask, safety_vest, no_safety_vest = prev_ppe_person
     df = pd.DataFrame([[hardhat, no_hardhat, mask, no_mask, safety_vest, no_safety_vest]], 
-                    columns=['Hardhat', 'NO_Hardhat', 'Mask', 'NO_Mask',  'Safety_Vest','NO_Safety_Vest'])
+                    columns=['Каска', 'Нет_каски', 'Маска', 'Нет_маски',  'Жилет','Нет_жилета'])
 
     df.to_excel('PPE_accounting.xlsx')
 
